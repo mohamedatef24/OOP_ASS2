@@ -9,7 +9,6 @@ class Bigreal
 private:
     std::string num;
     bool isValidReal(std::string n);
-
     std::string real; // Member variable for real part
     std::string frac; // Member variable for fractional part
     char sign;        // Member variable for the sign
@@ -25,8 +24,8 @@ public:
     int getDecimal_point_pos() const; // Member function to get the position of the decimal point
     void setNum(const std::string &n); // member function to set number
     friend std::ostream& operator<<(std::ostream& os, const Bigreal& bigreal); // friend function to print the number
-    bool operator< (const Bigreal &anotherReal)const ;
-    bool operator> (const Bigreal &anotherReal) const;
+    bool operator< ( Bigreal &anotherReal) ;
+    bool operator> ( Bigreal &anotherReal) ;
     bool operator== (const Bigreal &anotherReal)const;
 };
 
