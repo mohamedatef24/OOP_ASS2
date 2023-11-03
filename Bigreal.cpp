@@ -1,5 +1,6 @@
 #include "Bigreal.h"
 #include <tuple>
+#include <algorithm>
 
 bool flag=0;
 Bigreal::Bigreal(std::string num,int decimal_point_pos) : num(num) ,decimal_point_pos(decimal_point_pos) {
@@ -99,11 +100,15 @@ std::ostream& operator<<(std::ostream& out, const Bigreal& bigreal) {
     out << "Decimal point Position: " << bigreal.getDecimal_point_pos() << "\n";
     return out;
 }
-bool Bigreal::operator< (const Bigreal &anotherReal) const
+bool Bigreal::operator< ( Bigreal &anotherReal)
 {
     if(!flag){
         std::cout<<"INVALID NUM!\n";
         return 0;
+    }
+    if(sign=='-'&&anotherReal.sign=='-')
+    {
+        std::swap(*this,anotherReal);
     }
     if(sign==anotherReal.sign)
     {
@@ -126,11 +131,15 @@ bool Bigreal::operator< (const Bigreal &anotherReal) const
     }
     return 0;
 }
-bool Bigreal::operator> (const Bigreal &anotherReal) const
+bool Bigreal::operator> ( Bigreal &anotherReal)
 {
     if(!flag){
         std::cout<<"INVALID NUM!\n";
         return 0;
+    }
+    if(sign=='-'&&anotherReal.sign=='-')
+    {
+        std::swap(*this,anotherReal);
     }
     if(sign==anotherReal.sign)
     {
@@ -158,7 +167,6 @@ bool Bigreal::operator== (const Bigreal &anotherReal) const
     // Check if the signs, real parts, and fractional parts are all equal
     return (sign == anotherReal.sign) && (real == anotherReal.real) && (frac == anotherReal.frac);
 }
-
 
 
 
