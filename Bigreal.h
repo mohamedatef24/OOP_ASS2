@@ -8,14 +8,14 @@ class Bigreal
 {
 private:
     std::string num;
-    bool isValidReal(std::string n);
+    bool isValidReal(std::string n="0.0");
     std::string real; // Member variable for real part
     std::string frac; // Member variable for fractional part
     char sign;        // Member variable for the sign
     int decimal_point_pos; // member variable for the position of the decimal point
 
 public:
-    Bigreal(std::string num,int decimal_point_pos=-1);
+    Bigreal(std::string num="0.0",int decimal_point_pos=-1);
     virtual ~Bigreal();
 
     std::string getReal() const; // Member function to get the real part
@@ -27,6 +27,8 @@ public:
     bool operator< ( Bigreal &anotherReal) ;
     bool operator> ( Bigreal &anotherReal) ;
     bool operator== (const Bigreal &anotherReal)const;
+    std::string operator- (Bigreal& other);
+    std::string operator+ (Bigreal& other);
 };
 
 #endif // BIGREAL_H
