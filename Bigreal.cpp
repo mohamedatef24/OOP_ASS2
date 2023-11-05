@@ -6,9 +6,9 @@ bool flag=0;
 Bigreal::Bigreal(std::string num,int decimal_point_pos) : num(num) ,decimal_point_pos(decimal_point_pos) {
     if (isValidReal(num)) {
         std::cout << "Valid Real\n";
-        flag=1;
     } else {
         std::cout << "Invalid Real\n";
+        num="0.0";
     }
 }
 
@@ -98,6 +98,22 @@ std::ostream& operator<<(std::ostream& out, const Bigreal& bigreal) {
 }
 bool Bigreal::operator< ( Bigreal &anotherReal)
 {
+    if(flag)
+    {
+        if(real==anotherReal.real)
+        {
+            if(frac==anotherReal.frac) return 0;
+            if(frac.size()==anotherReal.frac.size())  return std::tie(frac) < std::tie(anotherReal.frac);
+            else return frac.size()< anotherReal.frac.size();
+        }
+        else
+        {
+            if(real.size()==anotherReal.real.size())  return std::tie(real) < std::tie(real);
+            else return real.size()< anotherReal.real.size();
+        }
+        flag=0;
+        return 0;
+    }
     if(sign=='-'&&anotherReal.sign=='-')
     {
         std::swap(*this,anotherReal);
@@ -125,7 +141,22 @@ bool Bigreal::operator< ( Bigreal &anotherReal)
 }
 bool Bigreal::operator> ( Bigreal &anotherReal)
 {
-
+    if (flag)
+    {
+        if(real==anotherReal.real)
+        {
+            if(frac==anotherReal.frac) return 0;
+            if(frac.size()==anotherReal.frac.size())  return std::tie(frac) > std::tie(anotherReal.frac);
+            else return frac.size()> anotherReal.frac.size();
+        }
+        else
+        {
+            if(real.size()==anotherReal.real.size())  return std::tie(real) > std::tie(anotherReal.real);
+            else return real.size()> anotherReal.real.size();
+        }
+        flag=0;
+        return 0;
+    }
     if(sign=='-'&&anotherReal.sign=='-')
     {
         std::swap(*this,anotherReal);
@@ -156,20 +187,73 @@ bool Bigreal::operator== (const Bigreal &anotherReal) const
     // Check if the signs, real parts, and fractional parts are all equal
     return (sign == anotherReal.sign) && (real == anotherReal.real) && (frac == anotherReal.frac);
 }
+bool ckp=0,ckm=0;
+
 std::string Bigreal::operator- (Bigreal& other) {
+    std::string res="";
+    flag=1;
+    ckm=1;
+    if(!ckp)
+    {
+
+        if((*this<other)) {
+        if(sign==other.sign&&sign=='+')
+        {
+            std::swap(*this,other);
+            res+="-";
+        }
+        else if(sign=='+'&&other.sign=='-')
+        {
+            res=(*this+other);
+            return res;
+        }
+        else if(sign=='-'&&other.sign=='+')
+        {
+            res=(*this+other);
+            res= "-" + res;
+            return res;
+        }
+        else {
+            std::swap(*this,other);
+        }
+    }
+    else {
+        if(sign==other.sign&&sign=='+')
+        {}
+        else if(sign=='+'&&other.sign=='-')
+        {
+            res=(*this+other);
+            return res;
+        }
+        else if(sign=='-'&&other.sign=='+')
+        {
+            res=(*this+other);
+            res= "-" + res;
+            return res;
+        }
+        else {
+            res+="-";
+        }
+    }
+    }
+    else {
+        if((*this<other)) std::swap(*this,other);
+    }
+    ckp=0;
+
     // Calculate the maximum length of the two fraction parts
     int fracMaxLength = std::max(frac.length(), other.frac.length());
 
     // Add leading zeros to frac if needed
     if (frac.length() < fracMaxLength) {
         int numZerosToAdd = fracMaxLength - frac.length();
-        frac = std::string(numZerosToAdd, '0') + frac;
+        frac += std::string(numZerosToAdd, '0');
     }
 
     // Add leading zeros to other.frac if needed
     if (other.frac.length() < fracMaxLength) {
         int numZerosToAdd = fracMaxLength - other.frac.length();
-        other.frac = std::string(numZerosToAdd, '0') + other.frac;
+        other.frac += std::string(numZerosToAdd, '0') ;
     }
 
     std::string fracResult;
@@ -178,10 +262,7 @@ std::string Bigreal::operator- (Bigreal& other) {
     // Subtracting each character in frac from the corresponding character in other
     for (int i = fracMaxLength - 1; i >= 0; --i) {
         int digit1 = frac[i] - '0';  // Change the frac char to decimal
-        int digit2 = 0;
-        if (i > 0) {
-            digit2 = frac[i - 1] - '0';  // Adjust digit2 for carry
-        }
+        int digit2 = (i > 0) ? (frac[i - 1] - '0') : 0;  // Adjust digit2 for carry
         int digit3 = other.frac[i] - '0';
         digit1 += fracCarry;  // Add the carry from the previous iteration
 
@@ -196,6 +277,7 @@ std::string Bigreal::operator- (Bigreal& other) {
         int resultDigit = digit1 - digit3;  // Subtract
         fracResult = std::to_string(resultDigit) + fracResult;
     }
+
     int remainingCarry = fracCarry;
 
     // Calculate the maximum length of the two real parts
@@ -216,13 +298,10 @@ std::string Bigreal::operator- (Bigreal& other) {
     std::string realResult;
     int realCarry = 0;
 
-    // Subtracting each character in frac from the corresponding character in other
+    // Subtracting each character in real from the corresponding character in other.real
     for (int i = realMaxLength - 1; i >= 0; --i) {
         int digit1 = real[i] - '0';  // Change real char to decimal
-        int digit2 = 0;
-        if (i > 0) {
-            digit2 = real[i - 1] - '0';  // Adjust digit2 for carry
-        }
+        int digit2 = (i > 0) ? (real[i - 1] - '0') : 0;  // Adjust digit2 for carry
         int digit3 = other.real[i] - '0';
         digit1 += realCarry;  // Add the carry from the previous iteration
 
@@ -233,88 +312,126 @@ std::string Bigreal::operator- (Bigreal& other) {
         else {
             realCarry = 0;  // No borrow, carry is 0
         }
-        if(fracCarry) digit1-=1,fracCarry=0;
+
         int resultDigit = digit1 - digit3;  // Subtract
         realResult = std::to_string(resultDigit) + realResult;
     }
 
-    std::string res=realResult;
-    res+=".";
-    res+=fracResult;
+    res += realResult;
+    res += ".";
+    res += fracResult;
 
     return res;
 }
+
 std::string Bigreal::operator+ (Bigreal& other) {
-    // Calculate the maximum length of the two fraction parts
-    int fracMaxLength = std::max(frac.length(), other.frac.length());
-
-    // Add leading zeros to frac if needed
-    if (frac.length() < fracMaxLength) {
-        int numZerosToAdd = fracMaxLength - frac.length();
-        frac += std::string(numZerosToAdd, '0');
-    }
-
-    // Add leading zeros to other.frac if needed
-    if (other.frac.length() < fracMaxLength) {
-        int numZerosToAdd = fracMaxLength - other.frac.length();
-        other.frac += std::string(numZerosToAdd, '0');
-    }
-
-    std::string fracResult="";
-    int fracCarry = 0;
-
-    // Adding each character in frac to the corresponding character in other frac
-    for (int i = fracMaxLength - 1; i >= 0; --i) {
-        int digit1 = frac[i] - '0';
-        int digit2 = other.frac[i] - '0';
-
-        int sum = digit1 + digit2 + fracCarry;
-        fracCarry = sum / 10;
-        fracResult = std::to_string((int)(sum % 10)) + fracResult;
-    }
-
-
-
-    // Calculate the maximum length of the two real parts
-    int realMaxLength = std::max(real.length(), other.real.length());
-
-    // Add leading zeros to 'real' if needed
-    if (real.length() < realMaxLength) {
-        int numZerosToAdd = realMaxLength - real.length();
-        real = std::string(numZerosToAdd, '0') + real;
-    }
-
-    // Add leading zeros to 'other.real' if needed
-    if (other.real.length() < realMaxLength) {
-        int numZerosToAdd = realMaxLength - other.real.length();
-        other.real = std::string(numZerosToAdd, '0') + other.real;
-    }
-
-    std::string realResult;
-    int realCarry = 0;
-
-    // Adding each character in real to the corresponding character in other real
-    for (int i = realMaxLength - 1; i >= 0; --i) {
-        int digit1 = real[i] - '0';
-        int digit2 = other.real[i] - '0';
-        if(fracCarry) realCarry=1,fracCarry;
-        int sum = digit1 + digit2 + realCarry;
-        realCarry = sum / 10;
-        realResult = std::to_string(sum % 10) + realResult;
-    }
-
-    if (realCarry > 0) {
-        realResult = std::to_string(realCarry) + realResult;
-    }
-
     std::string res="";
-    res+=realResult;
-    res+=".";
-    res+=fracResult;
+    ckp=1;
+    flag=1;
+    if(!ckm)
+    {
+        if((*this<other)) {
+        if(sign==other.sign&&sign=='+')
+        {}
+        else if(sign=='+'&&other.sign=='-')
+        {
+            res=(*this-other);
+            res="-"+res;
+            return res;
+        }
+        else if(sign=='-'&&other.sign=='+')
+        {
+            res=(*this-other);
+            return res;
+        }
+        else {
+            res+="-";
+        }
+    }
+    else {
+        if(sign==other.sign&&sign=='+')
+        {}
+        else if(sign=='+'&&other.sign=='-')
+        {
+            res=(*this-other);
+            return res;
+        }
+        else if(sign=='-'&&other.sign=='+')
+        {
+            res=(*this-other);
+            res= "-" + res;
+            return res;
+        }
+        else {
+            res+="-";
+        }
+    }
+    }
+    ckm=0;
 
+  // Calculate the maximum length of the two fraction parts
+  int fracMaxLength = std::max(frac.length(), other.frac.length());//Bigreal x("-36547854.3614") , y("514785269.96321");
 
-    return res;
+  // Add leading zeros to frac if needed
+  if (frac.length() < fracMaxLength) {
+    int numZerosToAdd = fracMaxLength - frac.length();
+    frac += std::string(numZerosToAdd, '0') ;
+  }
+
+  // Add leading zeros to other.frac if needed
+  if (other.frac.length() < fracMaxLength) {
+    int numZerosToAdd = fracMaxLength - other.frac.length();
+    other.frac += std::string(numZerosToAdd, '0') ;
+  }
+
+  std::string fracResult;
+  int fracCarry = 0;
+
+  // Adding each character in frac to the corresponding character in other frac
+  for (int i = fracMaxLength - 1; i >= 0; --i) {
+    int digit1 = frac[i] - '0';
+    int digit2 = other.frac[i] - '0';
+
+    int sum = digit1 + digit2 + fracCarry;
+    fracCarry = sum / 10;
+    fracResult = std::to_string(sum % 10) + fracResult;
+  }
+
+  // Calculate the maximum length of the two real parts
+  int realMaxLength = std::max(real.length(), other.real.length());
+
+  // Add leading zeros to 'real' if needed
+  if (real.length() < realMaxLength) {
+    int numZerosToAdd = realMaxLength - real.length();
+    real = std::string(numZerosToAdd, '0') + real;
+  }
+
+  // Add leading zeros to 'other.real' if needed
+  if (other.real.length() < realMaxLength) {
+    int numZerosToAdd = realMaxLength - other.real.length();
+    other.real = std::string(numZerosToAdd, '0') + other.real;
+  }
+
+  std::string realResult;
+  int realCarry = 0;
+
+  // Adding each character in real to the corresponding character in other real
+  for (int i = realMaxLength - 1; i >= 0; --i) {
+    int digit1 = real[i] - '0';
+    int digit2 = other.real[i] - '0';
+
+    int sum = digit1 + digit2 + realCarry + fracCarry;
+    fracCarry = 0;
+    realCarry = sum / 10;
+    realResult = std::to_string(sum % 10) + realResult;
+  }
+
+  // Add the carry-over to the real part if it is greater than 0
+  if (realCarry > 0) {
+    realResult = std::to_string(realCarry) + realResult;
+  }
+
+  // Combine the real and fractional parts
+    res += realResult + "." + fracResult;
+  return res;
 }
-
-
-
